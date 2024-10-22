@@ -33,10 +33,12 @@ export function AddTodo() {
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     if (!data.title) toast.error("Please enter a title");
-    
+
     setLoading(true);
 
     const formData = new FormData();
+
+    formData.append("title", data.title);
 
     await createTodo(formData);
     setLoading(false);
