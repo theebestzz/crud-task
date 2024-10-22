@@ -1,7 +1,7 @@
 "use server";
 
 import { Todo } from "@/lib/types";
-import { prisma } from "@/utils/prisma";
+import { prisma } from "@/lib/db";
 import { revalidateTag, unstable_noStore } from "next/cache";
 
 export async function createTodo(formData: FormData) {
