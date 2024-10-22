@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormSchema } from "@/lib/schemas";
-import { createTodo } from "@/app/actions";
+import { create } from "@/lib/actions";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -32,18 +32,22 @@ export function AddTodo() {
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    if (!data.title) toast.error("Please enter a title");
+    if (!data.title) {
+      toast.error("Please enter a title");
+      return;
+    }
 
     setLoading(true);
 
-    const formData = new FormData();
-
-    formData.append("title", data.title);
-
-    await createTodo(formData);
-    setLoading(false);
-    toast.success("To do added successfully");
-    form.reset();
+    try {
+      await create("todo", { title: data.title });
+      toast.success("Created successfully");
+      form.reset();
+    } catch (error) {
+      toast.error("Failed to create");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

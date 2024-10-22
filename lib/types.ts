@@ -5,3 +5,5 @@ export type Todo = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type PrismaModels = "todo";

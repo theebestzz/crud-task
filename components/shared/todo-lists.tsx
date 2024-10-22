@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { Todo } from "@/lib/types";
-import { updateTodoStatus, editTodo, deleteTodo } from "@/app/actions";
-import { Edit2, LoaderCircle, Trash2 } from "lucide-react";
+import { update, remove } from "@/lib/actions";
 import { cn } from "@/lib/utils";
+import { Edit2, LoaderCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,29 +14,36 @@ export function TodoLists({ todos }: { todos: Todo[] }) {
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [newTitle, setNewTitle] = useState<string>("");
 
-  async function handleStatusChange(id: string, completed: boolean) {
-    setLoading((prev) => ({ ...prev, [id + "_status"]: true }));
-    await updateTodoStatus(id, completed);
-    toast.success("Todo updated successfully");
-    setLoading((prev) => ({ ...prev, [id + "_status"]: false }));
-  }
-
   async function handleEditTodo() {
     if (editingTodo) {
       setLoading((prev) => ({ ...prev, [editingTodo.id + "_edit"]: true }));
-      await editTodo(editingTodo.id, newTitle);
-      toast.success("Todo title updated successfully");
-      setEditingTodo(null);
-      setNewTitle("");
-      setLoading((prev) => ({ ...prev, [editingTodo.id + "_edit"]: false }));
+
+      try {
+        // Genel update fonksiyonu ile güncelleme
+        await update("todo", editingTodo.id, { title: newTitle });
+        toast.success("Updated successfully");
+      } catch (error) {
+        toast.error("Failed to update todo");
+      } finally {
+        setEditingTodo(null);
+        setNewTitle("");
+        setLoading((prev) => ({ ...prev, [editingTodo.id + "_edit"]: false }));
+      }
     }
   }
 
   async function handleDeleteTodo(id: string) {
     setLoading((prev) => ({ ...prev, [id + "_delete"]: true }));
-    await deleteTodo(id);
-    toast.success("Todo deleted successfully");
-    setLoading((prev) => ({ ...prev, [id + "_delete"]: false }));
+
+    try {
+      // Genel remove fonksiyonu ile silme işlemi
+      await remove("todo", id);
+      toast.success("Deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete");
+    } finally {
+      setLoading((prev) => ({ ...prev, [id + "_delete"]: false }));
+    }
   }
 
   return (
@@ -81,28 +88,6 @@ export function TodoLists({ todos }: { todos: Todo[] }) {
               <span className="flex items-center gap-2 text-lg">
                 Delete <Trash2 size={20} color="red" />
               </span>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleStatusChange(todo.id, !todo.completed)}
-            disabled={loading[todo.id + "_status"]}
-            className={cn(
-              "w-full",
-              todo.completed
-                ? "bg-primary text-white"
-                : "bg-secondary text-primary hover:bg-secondary/90",
-            )}
-          >
-            {loading[todo.id + "_status"] ? (
-              <span className="flex items-center gap-2">
-                Loading
-                <LoaderCircle className="h-5 w-5 animate-spin" />
-              </span>
-            ) : todo.completed ? (
-              "Completed"
-            ) : (
-              "Incomplete"
             )}
           </Button>
         </div>
